@@ -23,13 +23,15 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)  
 
 # add path to the include directory
 include_directories(include/group6_rwa4)
 
 #other code
 add_executable(bot_sequence src/main.cpp src/bot_sequence.cpp)
-ament_target_dependencies(bot_sequence rclcpp)
+ament_target_dependencies(bot_sequence rclcpp geometry_msgs nav_msgs tf2 tf2_ros)
 
 
 install(TARGETS bot_sequence DESTINATION lib/${PROJECT_NAME})   #This means inside directory named group6_rwa4, 
