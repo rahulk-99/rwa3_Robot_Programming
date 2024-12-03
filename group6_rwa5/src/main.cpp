@@ -1,18 +1,23 @@
 #include "rclcpp/rclcpp.hpp"
 #include "waypoint_publisher.hpp"
+#include "waypoint_reacher.hpp"
 
-int main(int argc, char **argv) {
-    // Initialize the ROS2 system
+int main(int argc, char **argv)
+{
     rclcpp::init(argc, argv);
 
-    // Create an instance of the WaypointPublisher node
+    // Creating both nodes
     auto waypoint_publisher = std::make_shared<WaypointPublisher>();
+    auto waypoint_reacher = std::make_shared<WaypointReacher>();
 
-    // Spin the node to keep it running and processing callbacks
-    rclcpp::spin(waypoint_publisher);
+    // Creating a single-thread executor
+    rclcpp::executors::SingleThreadedExecutor executor;
 
-    // Shutdown the ROS2 system
+    // Adding both nodes to the executor
+    executor.add_node(waypoint_publisher);
+    executor.add_node(waypoint_reacher);
+
+    // Spin the executor
+    executor.spin();
     rclcpp::shutdown();
-
-    return 0;
 }

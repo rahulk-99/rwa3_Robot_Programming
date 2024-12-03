@@ -3,6 +3,7 @@
 #include <cmath>
 #include <geometry_msgs/msg/twist.hpp>
 #include "bot_waypoint_msgs/msg/bot_waypoint.hpp"
+#include <std_msgs/msg/bool.hpp>
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
@@ -10,7 +11,7 @@
 class WaypointReacher : public rclcpp::Node {
 public:
     WaypointReacher()
-        : Node("waypoint_reacher") {
+        : Node("waypoint_reacher"), waypoint_reached_{false} {
         // Subscribing bot_waypoint topic to get waypoint information
         reacher_subscription_ = this->create_subscription<bot_waypoint_msgs::msg::BotWaypoint>(
             "bot_waypoint", 10, std::bind(&WaypointReacher::waypoint_callback_reacher, this, std::placeholders::_1));
@@ -22,11 +23,13 @@ public:
         odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/odom", 10, std::bind(&WaypointReacher::odom_callback, this, std::placeholders::_1));
 
+        // Publishing to next_waypoint topic for next waypoint
+        next_waypoint_publisher_ = this->create_publisher<std_msgs::msg::Bool>("next_waypoint", 10);
+
         // Controller gains and tolerances
         kp_distance_ = 0.5;
         kp_angle_ = 2.0;
-        epsilon_ = 0.1;         // Positional tolerance
-        epsilon_theta_ = 0.05;  // Angular tolerance (radians)
+
         RCLCPP_INFO_STREAM(this->get_logger(), output_yellow("== waypoint_reacher node Started =="));
     }
 
@@ -41,17 +44,21 @@ private:
     rclcpp::Subscription<bot_waypoint_msgs::msg::BotWaypoint>::SharedPtr reacher_subscription_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr velocity_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr next_waypoint_publisher_;
 
-    // Goal parameters from waypoint
-    double goal_x_, goal_y_, goal_theta_;
 
-    // Controller parameters
+    double goal_x_;
+    double goal_y_;
+    double goal_theta_;
     double kp_distance_;
     double kp_angle_;
-    double epsilon_;
-    double epsilon_theta_;
+    // double tolerance_value_;
+    bool waypoint_reached_;
 
     // Current state of the robot
-    double current_x_, current_y_, current_theta_;
-    double roll_, pitch_;
+    double current_x_;
+    double current_y_;
+    double current_theta_;
+    double roll_;
+    double pitch_;
 };
